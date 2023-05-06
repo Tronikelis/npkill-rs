@@ -16,8 +16,8 @@ use std::{
 
 mod utils;
 use utils::{
-    events::list_state_listen,
     search::{find_target_folders, Folder},
+    state::list_state_listen,
 };
 
 #[derive(Debug, Clone)]
@@ -46,7 +46,16 @@ fn main() -> Result<()> {
             let items: Vec<_> = app_state
                 .folders
                 .iter()
-                .map(|folder| ListItem::new(folder.clone().path))
+                .map(|folder| {
+                    ListItem::new(format!(
+                        "{} -> {}",
+                        folder.path.clone(),
+                        folder
+                            .size
+                            .map(|x| (x as f64 / 1e6).to_string() + " MB")
+                            .unwrap_or("unknown".to_string())
+                    ))
+                })
                 .collect();
 
             let widget = List::new(items)

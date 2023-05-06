@@ -1,4 +1,5 @@
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind};
+use if_chain::if_chain;
 use std::{
     sync::Arc,
     thread::{self, JoinHandle},
@@ -82,11 +83,16 @@ pub fn list_state_listen(app_state: AppStateArc) -> JoinHandle<()> {
         move || {
             let mut app_state = app_state.lock().unwrap();
 
-            let selected = app_state.list_state.selected().unwrap();
-            let folder = app_state.folders.get(selected).unwrap().clone();
+            let selected = app_state.list_state.selected();
 
-            std::fs::remove_dir_all(folder.path).unwrap();
-            app_state.folders.remove(selected);
+            if_chain! {
+                if let Some(selected) = selected;
+                if let Some(folder) = app_state.folders.get(selected).cloned();
+                then {
+                    std::fs::remove_dir_all(folder.path).unwrap();
+                    app_state.folders.remove(selected);
+                }
+            };
         }
     };
 

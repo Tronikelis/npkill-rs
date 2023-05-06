@@ -13,15 +13,17 @@ use std::{
     time::Duration,
 };
 
-enum Events {
+pub enum AppEvent {
     KeyUp,
     KeyDown,
     KeyEnter,
 }
 
-pub fn thread_event_listen(state: Arc<Mutex<ListState>>) -> JoinHandle<()> {
+pub fn thread_event_listen<T>(callback: T) -> JoinHandle<()>
+where
+    T: Fn(AppEvent) -> () + Send + Sync + 'static,
+{
     let join_handle = thread::spawn({
-        let state = Arc::clone(&state);
         move || loop {
             let event = read().unwrap();
             match event {
@@ -29,21 +31,20 @@ pub fn thread_event_listen(state: Arc<Mutex<ListState>>) -> JoinHandle<()> {
                     code: KeyCode::Up,
                     kind: KeyEventKind::Release,
                     ..
-                }) => {
-                    let mut state = state.lock().unwrap();
-                    let selected = state.selected().unwrap();
-                    state.select(Some(selected.clamp(1, 2) - 1));
-                }
+                }) => callback(AppEvent::KeyUp),
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Down,
                     kind: KeyEventKind::Release,
                     ..
-                }) => {
-                    let mut state = state.lock().unwrap();
-                    let selected = state.selected().unwrap();
-                    state.select(Some(selected.clamp(0, 1) + 1));
-                }
+                }) => callback(AppEvent::KeyDown),
+
+                Event::Key(KeyEvent {
+                    code: KeyCode::Enter,
+                    kind: KeyEventKind::Release,
+                    ..
+                }) => callback(AppEvent::KeyEnter),
+
                 _ => (),
             };
         }

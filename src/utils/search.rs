@@ -10,11 +10,11 @@ pub struct Folder {
 
 pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder> {
     fn traverse(path: &str, target_folder: &str, folders: &mut Vec<Folder>, count: usize) {
+        let metadata = fs::metadata(path).unwrap();
+
         if count > MAX_DEPTH {
             return;
         }
-
-        let metadata = fs::metadata(path).unwrap();
 
         if metadata.is_file() {
             return;
@@ -26,6 +26,7 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
                 path: path.to_string(),
                 size: None,
             });
+            return;
         }
 
         for dir in fs::read_dir(path).unwrap() {

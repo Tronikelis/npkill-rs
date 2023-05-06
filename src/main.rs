@@ -15,7 +15,7 @@ use std::{
 
 mod utils;
 use utils::{
-    events::thread_event_listen,
+    events::{thread_event_listen, AppEvent},
     search::{find_target_folders, Folder},
 };
 
@@ -31,14 +31,38 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(backend)?;
 
     let app_state = AppState {
-        folders: find_target_folders(".", "utils"),
+        folders: find_target_folders(".", "node_modules"),
         state: Arc::new(Mutex::new(ListState::default())),
     };
-    {
-        app_state.state.lock().unwrap().select(Some(0));
-    }
 
-    thread_event_listen(Arc::clone(&app_state.state));
+    thread_event_listen({
+        let state = Arc::clone(&app_state.state);
+        let folder_len = app_state.folders.len() as i64;
+
+        move |event| {
+            if folder_len <= 1 {
+                return;
+            }
+
+            match event {
+                AppEvent::KeyDown => {
+                    let mut state = state.lock().unwrap();
+                    let selected = state.selected().unwrap_or(0) as i64;
+                    let new = (selected + 1).clamp(0, folder_len - 1);
+                    state.select(Some(new.try_into().unwrap_or(0)));
+                }
+                AppEvent::KeyUp => {
+                    let mut state = state.lock().unwrap();
+                    let selected = state.selected().unwrap_or(0) as i64;
+                    let new = (selected - 1).clamp(0, folder_len - 1);
+                    state.select(Some(new.try_into().unwrap_or(0)));
+                }
+                AppEvent::KeyEnter => {
+                    println!("{}", "Pressed ENTER");
+                }
+            }
+        }
+    });
 
     loop {
         let state = Arc::clone(&app_state.state);

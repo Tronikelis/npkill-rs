@@ -1,12 +1,10 @@
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind};
-use ratatui::widgets::ListState;
-
 use std::{
-    sync::{Arc, Mutex},
+    sync::Arc,
     thread::{self, JoinHandle},
 };
 
-use crate::{AppState, AppStateArc};
+use crate::AppStateArc;
 
 pub enum Key {
     Up,

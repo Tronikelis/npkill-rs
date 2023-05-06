@@ -40,7 +40,7 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
 
     traverse(start_path, target_folder, &mut folders, 0);
 
-    folders
+    return folders;
 }
 
 fn calculate_folder_size(path: &str) -> usize {

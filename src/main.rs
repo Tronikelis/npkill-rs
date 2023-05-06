@@ -21,13 +21,12 @@ use utils::{
 };
 
 #[derive(Debug, Clone)]
-struct AppState<T>
-where
-    T: Send + Sync,
-{
-    folders: Vec<Folder>,
-    state: Arc<Mutex<T>>,
+pub struct AppState {
+    pub folders: Vec<Folder>,
+    pub list_state: ListState,
 }
+
+type AppStateArc = Arc<Mutex<AppState>>;
 
 fn main() -> Result<()> {
     let stdout = io::stdout();
@@ -36,17 +35,18 @@ fn main() -> Result<()> {
 
     println!("Recursively searching for node_modules folders");
 
-    let app_state = AppState {
+    let app_state = Arc::new(Mutex::new(AppState {
         folders: find_target_folders(".", "node_modules"),
-        state: Arc::new(Mutex::new(ListState::default())),
-    };
+        list_state: ListState::default(),
+    }));
 
-    list_state_listen(Arc::clone(&app_state.state), app_state.folders.len());
+    list_state_listen(Arc::clone(&app_state));
 
     loop {
-        let state = Arc::clone(&app_state.state);
+        let app_state = Arc::clone(&app_state);
         terminal.draw(|frame| {
             let size = frame.size();
+            let mut app_state = app_state.lock().unwrap();
 
             let items: Vec<_> = app_state
                 .folders
@@ -69,8 +69,7 @@ fn main() -> Result<()> {
                 .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
                 .highlight_symbol(">>");
 
-            let mut state = state.lock().unwrap();
-            frame.render_stateful_widget(widget, size, &mut state);
+            frame.render_stateful_widget(widget, size, &mut app_state.list_state);
         })?;
 
         thread::sleep(Duration::from_millis(12));

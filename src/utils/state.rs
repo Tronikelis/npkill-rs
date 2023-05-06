@@ -22,19 +22,19 @@ where
             match event {
                 Event::Key(KeyEvent {
                     code: KeyCode::Up,
-                    kind: KeyEventKind::Release,
+                    kind: KeyEventKind::Press,
                     ..
                 }) => callback(Key::Up),
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Down,
-                    kind: KeyEventKind::Release,
+                    kind: KeyEventKind::Press,
                     ..
                 }) => callback(Key::Down),
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Enter,
-                    kind: KeyEventKind::Release,
+                    kind: KeyEventKind::Press,
                     ..
                 }) => callback(Key::Enter),
 

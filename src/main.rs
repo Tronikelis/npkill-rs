@@ -21,7 +21,10 @@ use utils::{
 };
 
 #[derive(Debug, Clone)]
-struct AppState<T> {
+struct AppState<T>
+where
+    T: Send + Sync,
+{
     folders: Vec<Folder>,
     state: Arc<Mutex<T>>,
 }
@@ -30,6 +33,8 @@ fn main() -> Result<()> {
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
+
+    println!("Recursively searching for node_modules folders");
 
     let app_state = AppState {
         folders: find_target_folders(".", "node_modules"),
@@ -59,11 +64,7 @@ fn main() -> Result<()> {
                 .collect();
 
             let widget = List::new(items)
-                .block(
-                    Block::default()
-                        .title("node module paths")
-                        .borders(Borders::ALL),
-                )
+                .block(Block::default().title("npkill-rs").borders(Borders::ALL))
                 .style(Style::default().fg(Color::White))
                 .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
                 .highlight_symbol(">>");
@@ -72,6 +73,6 @@ fn main() -> Result<()> {
             frame.render_stateful_widget(widget, size, &mut state);
         })?;
 
-        thread::sleep(Duration::from_millis(16));
+        thread::sleep(Duration::from_millis(12));
     }
 }

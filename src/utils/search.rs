@@ -20,11 +20,11 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
             return;
         }
 
-        // normalizing path because windows oi
+        // normalizing path because windows *sigh*
         if path.replace('\\', "/").split('/').last().unwrap() == target_folder {
             folders.push(Folder {
                 path: path.to_string(),
-                size: None,
+                size: Some(calculate_folder_size(path)),
             });
             return;
         }
@@ -41,4 +41,26 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
     traverse(start_path, target_folder, &mut folders, 0);
 
     folders
+}
+
+fn calculate_folder_size(path: &str) -> usize {
+    let mut total: usize = 0;
+
+    for dir in fs::read_dir(path).unwrap() {
+        let child = dir.unwrap();
+        let metadata = child.metadata().unwrap();
+
+        if metadata.is_file() {
+            total += metadata.len() as usize;
+            continue;
+        }
+
+        if metadata.is_symlink() {
+            continue;
+        }
+
+        total += calculate_folder_size(child.path().to_str().unwrap());
+    }
+
+    return total;
 }

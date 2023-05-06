@@ -16,7 +16,7 @@ use std::{
 
 mod utils;
 use utils::{
-    events::{thread_event_listen, Key},
+    events::list_state_listen,
     search::{find_target_folders, Folder},
 };
 
@@ -36,28 +36,7 @@ fn main() -> Result<()> {
         state: Arc::new(Mutex::new(ListState::default())),
     };
 
-    thread_event_listen({
-        let state = Arc::clone(&app_state.state);
-        let folder_len = app_state.folders.len() as i64;
-
-        move |event| match event {
-            Key::Down => {
-                let mut state = state.lock().unwrap();
-                let selected = state.selected().unwrap_or(0) as i64;
-                let new = (selected + 1).clamp(0, folder_len - 1);
-                state.select(Some(new.try_into().unwrap_or(0)));
-            }
-            Key::Up => {
-                let mut state = state.lock().unwrap();
-                let selected = state.selected().unwrap_or(0) as i64;
-                let new = (selected - 1).clamp(0, folder_len - 1);
-                state.select(Some(new.try_into().unwrap_or(0)));
-            }
-            Key::Enter => {
-                println!("Pressed ENTER");
-            }
-        }
-    });
+    list_state_listen(Arc::clone(&app_state.state), app_state.folders.len());
 
     loop {
         let state = Arc::clone(&app_state.state);

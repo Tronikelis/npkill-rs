@@ -1,9 +1,10 @@
+#![allow(clippy::needless_return)]
+
 use anyhow::Result;
-use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
     backend::CrosstermBackend,
     style::{Color, Modifier, Style},
-    widgets::{self, Block, Borders, List, ListItem, ListState},
+    widgets::{Block, Borders, List, ListItem, ListState},
     Terminal,
 };
 use std::{
@@ -15,7 +16,7 @@ use std::{
 
 mod utils;
 use utils::{
-    events::{thread_event_listen, AppEvent},
+    events::{thread_event_listen, Key},
     search::{find_target_folders, Folder},
 };
 
@@ -39,27 +40,21 @@ fn main() -> Result<()> {
         let state = Arc::clone(&app_state.state);
         let folder_len = app_state.folders.len() as i64;
 
-        move |event| {
-            if folder_len <= 1 {
-                return;
+        move |event| match event {
+            Key::Down => {
+                let mut state = state.lock().unwrap();
+                let selected = state.selected().unwrap_or(0) as i64;
+                let new = (selected + 1).clamp(0, folder_len - 1);
+                state.select(Some(new.try_into().unwrap_or(0)));
             }
-
-            match event {
-                AppEvent::KeyDown => {
-                    let mut state = state.lock().unwrap();
-                    let selected = state.selected().unwrap_or(0) as i64;
-                    let new = (selected + 1).clamp(0, folder_len - 1);
-                    state.select(Some(new.try_into().unwrap_or(0)));
-                }
-                AppEvent::KeyUp => {
-                    let mut state = state.lock().unwrap();
-                    let selected = state.selected().unwrap_or(0) as i64;
-                    let new = (selected - 1).clamp(0, folder_len - 1);
-                    state.select(Some(new.try_into().unwrap_or(0)));
-                }
-                AppEvent::KeyEnter => {
-                    println!("{}", "Pressed ENTER");
-                }
+            Key::Up => {
+                let mut state = state.lock().unwrap();
+                let selected = state.selected().unwrap_or(0) as i64;
+                let new = (selected - 1).clamp(0, folder_len - 1);
+                state.select(Some(new.try_into().unwrap_or(0)));
+            }
+            Key::Enter => {
+                println!("Pressed ENTER");
             }
         }
     });

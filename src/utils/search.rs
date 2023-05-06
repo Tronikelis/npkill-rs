@@ -21,7 +21,7 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
         }
 
         // normalizing path because windows oi
-        if path.replace("\\", "/").split("/").last().unwrap() == target_folder {
+        if path.replace('\\', "/").split('/').last().unwrap() == target_folder {
             folders.push(Folder {
                 path: path.to_string(),
                 size: None,
@@ -40,5 +40,5 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
 
     traverse(start_path, target_folder, &mut folders, 0);
 
-    return folders;
+    folders
 }

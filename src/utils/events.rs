@@ -1,29 +1,18 @@
-use anyhow::Result;
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind};
-use ratatui::{
-    backend::CrosstermBackend,
-    style::{Color, Modifier, Style},
-    widgets::{self, Block, Borders, List, ListItem, ListState},
-    Terminal,
-};
-use std::{
-    io,
-    sync::{Arc, Mutex},
-    thread::{self, JoinHandle},
-    time::Duration,
-};
 
-pub enum AppEvent {
-    KeyUp,
-    KeyDown,
-    KeyEnter,
+use std::thread::{self, JoinHandle};
+
+pub enum Key {
+    Up,
+    Down,
+    Enter,
 }
 
 pub fn thread_event_listen<T>(callback: T) -> JoinHandle<()>
 where
-    T: Fn(AppEvent) -> () + Send + Sync + 'static,
+    T: Fn(Key) + Send + Sync + 'static,
 {
-    let join_handle = thread::spawn({
+    return thread::spawn({
         move || loop {
             let event = read().unwrap();
             match event {
@@ -31,24 +20,22 @@ where
                     code: KeyCode::Up,
                     kind: KeyEventKind::Release,
                     ..
-                }) => callback(AppEvent::KeyUp),
+                }) => callback(Key::Up),
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Down,
                     kind: KeyEventKind::Release,
                     ..
-                }) => callback(AppEvent::KeyDown),
+                }) => callback(Key::Down),
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Enter,
                     kind: KeyEventKind::Release,
                     ..
-                }) => callback(AppEvent::KeyEnter),
+                }) => callback(Key::Enter),
 
                 _ => (),
             };
         }
     });
-
-    return join_handle;
 }

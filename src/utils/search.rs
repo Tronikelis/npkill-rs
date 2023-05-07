@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use if_chain::if_chain;
 use std::fs;
 
-const MAX_DEPTH: usize = 20;
+const MAX_DEPTH: usize = 10;
 
 #[derive(Clone, Debug)]
 pub struct Folder {

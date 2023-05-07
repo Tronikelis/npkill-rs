@@ -17,7 +17,7 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
             return;
         }
 
-        if metadata.is_file() {
+        if !metadata.is_dir() {
             return;
         }
 
@@ -60,7 +60,7 @@ fn calculate_folder_size(path: &str) -> usize {
             continue;
         }
 
-        if metadata.is_symlink() {
+        if metadata.is_symlink() || !metadata.is_dir() {
             continue;
         }
 

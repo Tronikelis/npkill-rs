@@ -48,8 +48,6 @@ type AppStateArc = Arc<Mutex<AppState>>;
 
 fn main() -> Result<()> {
     let stdout = io::stdout();
-    enable_raw_mode()?;
-
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -72,6 +70,7 @@ fn main() -> Result<()> {
 
     spinner.stop();
     terminal.clear()?;
+    enable_raw_mode()?;
 
     list_state_listen(Arc::clone(&app_state));
 

@@ -1,3 +1,4 @@
+use if_chain::if_chain;
 use std::fs;
 
 const MAX_DEPTH: usize = 20;
@@ -11,16 +12,6 @@ pub struct Folder {
 
 pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder> {
     fn traverse(path: &str, target_folder: &str, folders: &mut Vec<Folder>, count: usize) {
-        let metadata = fs::metadata(path).unwrap();
-
-        if count > MAX_DEPTH {
-            return;
-        }
-
-        if !metadata.is_dir() {
-            return;
-        }
-
         // normalizing path because windows *sigh*
         if path.replace('\\', "/").split('/').last().unwrap() == target_folder {
             folders.push(Folder {
@@ -31,12 +22,20 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
             return;
         }
 
-        let read_dir = fs::read_dir(path);
-        if let Ok(read_dir) = read_dir {
-            for dir in read_dir {
-                let child = dir.unwrap().path();
-                let child = child.to_str().unwrap();
-                traverse(child, target_folder, folders, count + 1);
+        let metadata = fs::metadata(path);
+
+        if_chain! {
+            if count < MAX_DEPTH;
+            if let Ok(metadata) = metadata;
+            if metadata.is_dir();
+            if let Ok(read_dir) = fs::read_dir(path);
+
+            then {
+                for dir in read_dir {
+                    let child = dir.unwrap().path();
+                    let child = child.to_str().unwrap();
+                    traverse(child, target_folder, folders, count + 1);
+                }
             }
         }
     }

@@ -30,6 +30,7 @@ pub struct AppState {
     pub folders: Vec<Folder>,
     pub list_state: ListState,
     pub status: Status,
+    pub errors: Option<String>,
 }
 
 impl AppState {
@@ -59,6 +60,7 @@ fn main() -> Result<()> {
         folders: find_target_folders(".", "node_modules"),
         list_state: ListState::default(),
         status: Status::Kmr,
+        errors: None,
     }));
 
     spinner.stop();
@@ -80,7 +82,8 @@ fn main() -> Result<()> {
             let mut app_renderer = AppRenderer::new(frame, app_state);
 
             app_renderer.render_header();
-            app_renderer.render_body();
+            app_renderer.render_errors();
+            app_renderer.render_list();
         })?;
 
         thread::sleep(Duration::from_millis(12));

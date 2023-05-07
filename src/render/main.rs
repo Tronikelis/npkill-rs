@@ -2,7 +2,7 @@ use ratatui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
     Frame,
 };
 use std::sync::MutexGuard;
@@ -23,7 +23,8 @@ where
 #[derive(Debug, Clone)]
 struct GlobalLayout {
     header: Rect,
-    body: Rect,
+    errors: Rect,
+    list: Rect,
 }
 
 impl<'a, 'b, 'c, T> AppRenderer<'a, 'b, 'c, T>
@@ -33,13 +34,18 @@ where
     pub fn new(frame: &'c mut Frame<'a, T>, app_state: MutexAppState<'b>) -> Self {
         let layout = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])
-            .constraints([Constraint::Min(5), Constraint::Min(0)])
+            .constraints([
+                Constraint::Percentage(20),
+                Constraint::Percentage(10),
+                Constraint::Percentage(70),
+            ])
+            .constraints([Constraint::Min(5), Constraint::Min(3), Constraint::Min(0)])
             .split(frame.size());
 
         let global_layout = GlobalLayout {
             header: layout[0],
-            body: layout[1],
+            errors: layout[1],
+            list: layout[2],
         };
 
         return AppRenderer {
@@ -77,8 +83,20 @@ where
         self.frame.render_widget(branding, text_layout);
     }
 
-    pub fn render_body(&mut self) {
-        let area = self.global_layout.body;
+    pub fn render_errors(&mut self) {
+        let area = self.global_layout.errors;
+        let container = Block::default().borders(Borders::all()).title("Errors");
+
+        let errors = self.app_state.errors.as_ref();
+        let paragraph = Paragraph::new(errors.map(|x| x.to_string()).unwrap_or("Ok".to_string()))
+            .block(container)
+            .wrap(Wrap { trim: true });
+
+        self.frame.render_widget(paragraph, area);
+    }
+
+    pub fn render_list(&mut self) {
+        let area = self.global_layout.list;
         let container = Block::default().borders(Borders::all());
 
         let items: Vec<_> = self

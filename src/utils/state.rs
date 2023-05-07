@@ -101,7 +101,7 @@ pub fn list_state_listen(app_state: AppStateArc) -> JoinHandle<()> {
                             }
 
                             if let Err(err) = std::fs::remove_dir_all(folder.path) {
-                                println!("Couldn't remove files: {}", err);
+                                app_state.lock().unwrap().errors = Some(err.to_string());
                             }
 
                             let mut app_state_locked = app_state.lock().unwrap();

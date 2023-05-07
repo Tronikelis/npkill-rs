@@ -78,7 +78,7 @@ fn main() -> Result<()> {
     loop {
         let app_state = Arc::clone(&app_state);
 
-        if app_state.lock().unwrap().folders.len() == 0 {
+        if app_state.lock().unwrap().folders.is_empty() {
             terminal.clear()?;
             disable_raw_mode()?;
 

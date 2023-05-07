@@ -5,7 +5,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use crate::AppStateArc;
+use crate::{AppStateArc, Status};
 
 pub enum Key {
     Up,
@@ -81,16 +81,26 @@ pub fn list_state_listen(app_state: AppStateArc) -> JoinHandle<()> {
     let on_enter = {
         let app_state = Arc::clone(&app_state);
         move || {
-            let mut app_state = app_state.lock().unwrap();
+            let mut app_state_locked = app_state.lock().unwrap();
 
-            let selected = app_state.list_state.selected();
+            let selected = app_state_locked.list_state.selected();
 
             if_chain! {
                 if let Some(selected) = selected;
-                if let Some(folder) = app_state.folders.get(selected).cloned();
+                if let Some(folder) = app_state_locked.folders.get(selected).cloned();
                 then {
-                    std::fs::remove_dir_all(folder.path).unwrap();
-                    app_state.folders.remove(selected);
+                    thread::spawn({
+                        let app_state = Arc::clone(&app_state);
+                        move || {
+                            {
+                                app_state.lock().unwrap().status = Status::Deleting;
+                            }
+
+                            std::fs::remove_dir_all(folder.path).unwrap();
+                            app_state.lock().unwrap().status = Status::Kmr;
+                        }
+                    });
+                    app_state_locked.folders.remove(selected);
                 }
             };
         }

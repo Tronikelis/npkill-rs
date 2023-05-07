@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use ratatui::{backend::CrosstermBackend, widgets::ListState, Terminal};
+use spinoff::{spinners, Spinner};
 use std::{
     io,
     sync::{Arc, Mutex},
@@ -19,9 +20,16 @@ use utils::{
 };
 
 #[derive(Debug, Clone)]
+pub enum Status {
+    Kmr,
+    Deleting,
+}
+
+#[derive(Debug, Clone)]
 pub struct AppState {
     pub folders: Vec<Folder>,
     pub list_state: ListState,
+    pub status: Status,
 }
 
 type AppStateArc = Arc<Mutex<AppState>>;
@@ -31,13 +39,19 @@ fn main() -> Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    println!("Recursively searching for node_modules folders");
+    let spinner = Spinner::new(
+        spinners::Dots,
+        "Recursively searching for node_modules folders",
+        spinoff::Color::White,
+    );
 
     let app_state = Arc::new(Mutex::new(AppState {
         folders: find_target_folders(".", "node_modules"),
         list_state: ListState::default(),
+        status: Status::Kmr,
     }));
 
+    spinner.stop();
     terminal.clear()?;
 
     list_state_listen(Arc::clone(&app_state));

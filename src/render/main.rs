@@ -5,11 +5,9 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Frame,
 };
-use std::{
-    sync::{MutexGuard},
-};
+use std::sync::MutexGuard;
 
-use crate::AppState;
+use crate::{AppState, Status};
 
 type MutexAppState<'a> = MutexGuard<'a, AppState>;
 
@@ -66,7 +64,13 @@ where
             .style(Style::default().add_modifier(Modifier::BOLD))
             .alignment(Alignment::Center);
 
-        let status = Paragraph::new("status: kmr (chilling)").alignment(Alignment::Left);
+        let status_text = "status: ".to_string();
+        let status_text = match self.app_state.status {
+            Status::Kmr => status_text + " kmr 🇱🇹 (chilling)",
+            Status::Deleting => status_text + " deleting files, wait!",
+        };
+
+        let status = Paragraph::new(status_text).alignment(Alignment::Left);
 
         self.frame.render_widget(container, area);
         self.frame.render_widget(status, text_layout);

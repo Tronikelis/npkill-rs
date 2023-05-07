@@ -10,3 +10,4 @@ anyhow = "1.0.71"
 crossterm = "0.26.1"
 if_chain = "1.0.2"
 ratatui = "0.20.1"
+spinoff = {version = "0.7.0", features = ["dots"]}

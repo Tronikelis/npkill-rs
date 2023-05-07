@@ -1,6 +1,7 @@
 #![allow(clippy::needless_return)]
 
 use anyhow::Result;
+use crossterm::terminal::enable_raw_mode;
 use ratatui::{backend::CrosstermBackend, widgets::ListState, Terminal};
 use spinoff::{spinners, Spinner};
 use std::{
@@ -47,6 +48,8 @@ type AppStateArc = Arc<Mutex<AppState>>;
 
 fn main() -> Result<()> {
     let stdout = io::stdout();
+    enable_raw_mode()?;
+
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 

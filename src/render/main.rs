@@ -85,6 +85,7 @@ where
             .app_state
             .folders
             .iter()
+            .filter(|folder| !folder.deleting)
             .map(|folder| {
                 ListItem::new(format!(
                     "{} -> {}",

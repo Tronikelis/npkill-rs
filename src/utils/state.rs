@@ -56,7 +56,15 @@ pub fn list_state_listen(app_state: AppStateArc) -> JoinHandle<()> {
         move |dir: Dir| {
             let mut app_state = app_state.lock().unwrap();
 
-            let list_len: i64 = app_state.folders.len().try_into().unwrap_or(0);
+            let list_len: i64 = app_state
+                .folders
+                .iter()
+                .filter(|folder| !folder.deleting)
+                .collect::<Vec<_>>()
+                .len()
+                .try_into()
+                .unwrap_or(0);
+
             if list_len <= 0 {
                 return;
             }
@@ -82,7 +90,6 @@ pub fn list_state_listen(app_state: AppStateArc) -> JoinHandle<()> {
         let app_state = Arc::clone(&app_state);
         move || {
             let mut app_state_locked = app_state.lock().unwrap();
-
             let selected = app_state_locked.list_state.selected();
 
             if_chain! {
@@ -97,10 +104,14 @@ pub fn list_state_listen(app_state: AppStateArc) -> JoinHandle<()> {
                             }
 
                             std::fs::remove_dir_all(folder.path).unwrap();
-                            app_state.lock().unwrap().status = Status::Kmr;
+
+                            let mut app_state_locked = app_state.lock().unwrap();
+                            app_state_locked.status = Status::Kmr;
+                            app_state_locked.folders.remove(selected);
                         }
                     });
-                    app_state_locked.folders.remove(selected);
+
+                    app_state_locked.folders[selected].deleting = true;
                 }
             };
         }

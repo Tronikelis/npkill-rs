@@ -6,6 +6,7 @@ const MAX_DEPTH: usize = 20;
 pub struct Folder {
     pub path: String,
     pub size: Option<usize>,
+    pub deleting: bool,
 }
 
 pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder> {
@@ -25,6 +26,7 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
             folders.push(Folder {
                 path: path.to_string(),
                 size: Some(calculate_folder_size(path)),
+                deleting: false,
             });
             return;
         }

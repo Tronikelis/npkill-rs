@@ -57,10 +57,7 @@ pub fn list_state_listen(app_state: AppStateArc) -> JoinHandle<()> {
             let mut app_state = app_state.lock().unwrap();
 
             let list_len: i64 = app_state
-                .folders
-                .iter()
-                .filter(|folder| !folder.deleting)
-                .collect::<Vec<_>>()
+                .not_deleting_folders()
                 .len()
                 .try_into()
                 .unwrap_or(0);

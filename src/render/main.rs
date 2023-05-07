@@ -83,9 +83,8 @@ where
 
         let items: Vec<_> = self
             .app_state
-            .folders
+            .not_deleting_folders()
             .iter()
-            .filter(|folder| !folder.deleting)
             .map(|folder| {
                 ListItem::new(format!(
                     "{} -> {}",

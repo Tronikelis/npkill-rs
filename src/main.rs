@@ -32,6 +32,16 @@ pub struct AppState {
     pub status: Status,
 }
 
+impl AppState {
+    fn not_deleting_folders(&self) -> Vec<&Folder> {
+        return self
+            .folders
+            .iter()
+            .filter(|folder| !folder.deleting)
+            .collect();
+    }
+}
+
 type AppStateArc = Arc<Mutex<AppState>>;
 
 fn main() -> Result<()> {

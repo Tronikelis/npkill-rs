@@ -1,7 +1,7 @@
 #![allow(clippy::needless_return)]
 
 use anyhow::Result;
-use crossterm::terminal::enable_raw_mode;
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use ratatui::{backend::CrosstermBackend, widgets::ListState, Terminal};
 use spinoff::{spinners, Spinner};
 use std::{
@@ -76,6 +76,8 @@ fn main() -> Result<()> {
 
         if app_state.lock().unwrap().folders.len() == 0 {
             terminal.clear()?;
+            disable_raw_mode()?;
+
             println!("No node_modules left, the 🦀 did its job");
             return Ok(());
         }

@@ -1,4 +1,7 @@
-use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::{
+    event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
+    terminal::disable_raw_mode,
+};
 use if_chain::if_chain;
 use std::{
     sync::Arc,
@@ -11,6 +14,7 @@ pub enum Key {
     Up,
     Down,
     Enter,
+    CtrlC,
 }
 
 pub fn thread_event_listen<T>(callback: T) -> JoinHandle<()>
@@ -41,6 +45,13 @@ where
                     modifiers: KeyModifiers::NONE,
                     ..
                 }) => callback(Key::Enter),
+
+                Event::Key(KeyEvent {
+                    code: KeyCode::Char('c'),
+                    kind: KeyEventKind::Press,
+                    modifiers: KeyModifiers::CONTROL,
+                    ..
+                }) => callback(Key::CtrlC),
 
                 _ => (),
             };
@@ -119,11 +130,17 @@ pub fn list_state_listen(app_state: AppStateArc) -> JoinHandle<()> {
         }
     };
 
+    let on_ctrl_c = || {
+        disable_raw_mode().unwrap();
+        std::process::exit(0);
+    };
+
     return thread_event_listen({
         move |event| match event {
             Key::Down => move_list(Dir::Down),
             Key::Up => move_list(Dir::Up),
             Key::Enter => on_enter(),
+            Key::CtrlC => on_ctrl_c(),
         }
     });
 }

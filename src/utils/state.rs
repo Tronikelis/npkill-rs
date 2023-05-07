@@ -1,4 +1,4 @@
-use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind};
+use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use if_chain::if_chain;
 use std::{
     sync::Arc,
@@ -24,18 +24,21 @@ where
                 Event::Key(KeyEvent {
                     code: KeyCode::Up,
                     kind: KeyEventKind::Press,
+                    modifiers: KeyModifiers::NONE,
                     ..
                 }) => callback(Key::Up),
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Down,
                     kind: KeyEventKind::Press,
+                    modifiers: KeyModifiers::NONE,
                     ..
                 }) => callback(Key::Down),
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Enter,
                     kind: KeyEventKind::Press,
+                    modifiers: KeyModifiers::NONE,
                     ..
                 }) => callback(Key::Enter),
 

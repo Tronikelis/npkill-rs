@@ -1,7 +1,7 @@
 #![allow(clippy::needless_return)]
 
 use anyhow::Result;
-use crossterm::terminal::enable_raw_mode;
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use ratatui::{backend::CrosstermBackend, widgets::ListState, Terminal};
 use spinoff::{spinners, Spinner};
 use std::{
@@ -61,7 +61,11 @@ fn main() -> Result<()> {
 
     let app_state = Arc::new(Mutex::new(AppState {
         folders: find_target_folders(".", "node_modules"),
-        list_state: ListState::default(),
+        list_state: {
+            let mut list_state = ListState::default();
+            list_state.select(Some(0));
+            list_state
+        },
         status: Status::Kmr,
         errors: None,
     }));
@@ -76,6 +80,8 @@ fn main() -> Result<()> {
 
         if app_state.lock().unwrap().folders.len() == 0 {
             terminal.clear()?;
+            disable_raw_mode()?;
+
             println!("No node_modules left, the 🦀 did its job");
             return Ok(());
         }

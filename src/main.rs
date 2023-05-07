@@ -1,13 +1,7 @@
 #![allow(clippy::needless_return)]
 
 use anyhow::Result;
-use ratatui::{
-    backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
-    style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
-    Terminal,
-};
+use ratatui::{backend::CrosstermBackend, widgets::ListState, Terminal};
 use std::{
     io,
     sync::{Arc, Mutex},
@@ -51,7 +45,7 @@ fn main() -> Result<()> {
     loop {
         let app_state = Arc::clone(&app_state);
 
-        if app_state.lock().unwrap().folders.len() <= 0 {
+        if app_state.lock().unwrap().folders.len() == 0 {
             terminal.clear()?;
             println!("No node_modules left, the 🦀 did its job");
             return Ok(());

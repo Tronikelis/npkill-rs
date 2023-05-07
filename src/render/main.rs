@@ -1,13 +1,12 @@
 use ratatui::{
     backend::Backend,
-    layout::{Alignment, Constraint, Direction, Layout, Margin, Rect},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Frame,
 };
 use std::{
-    rc::Rc,
-    sync::{Arc, MutexGuard},
+    sync::{MutexGuard},
 };
 
 use crate::AppState;

@@ -31,10 +31,13 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
             return;
         }
 
-        for dir in fs::read_dir(path).unwrap() {
-            let child = dir.unwrap().path();
-            let child = child.to_str().unwrap();
-            traverse(child, target_folder, folders, count + 1);
+        let read_dir = fs::read_dir(path);
+        if let Ok(read_dir) = read_dir {
+            for dir in read_dir {
+                let child = dir.unwrap().path();
+                let child = child.to_str().unwrap();
+                traverse(child, target_folder, folders, count + 1);
+            }
         }
     }
 

@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use if_chain::if_chain;
 use std::fs;
 
@@ -16,7 +17,7 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
         if path.replace('\\', "/").split('/').last().unwrap() == target_folder {
             folders.push(Folder {
                 path: path.to_string(),
-                size: Some(calculate_folder_size(path)),
+                size: calculate_folder_size(path).ok(),
                 deleting: false,
             });
             return;
@@ -47,12 +48,12 @@ pub fn find_target_folders(start_path: &str, target_folder: &str) -> Vec<Folder>
     return folders;
 }
 
-fn calculate_folder_size(path: &str) -> usize {
+fn calculate_folder_size(path: &str) -> Result<usize> {
     let mut total: usize = 0;
 
-    for dir in fs::read_dir(path).unwrap() {
-        let child = dir.unwrap();
-        let metadata = child.metadata().unwrap();
+    for dir in fs::read_dir(path)? {
+        let child = dir?;
+        let metadata = child.metadata()?;
 
         if metadata.is_file() {
             total += metadata.len() as usize;
@@ -63,8 +64,9 @@ fn calculate_folder_size(path: &str) -> usize {
             continue;
         }
 
-        total += calculate_folder_size(child.path().to_str().unwrap());
+        total += calculate_folder_size(child.path().to_str().ok_or(anyhow!("invalid utf-8"))?)
+            .unwrap_or(0);
     }
 
-    return total;
+    return Ok(total);
 }

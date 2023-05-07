@@ -44,6 +44,12 @@ fn main() -> Result<()> {
 
     loop {
         let app_state = Arc::clone(&app_state);
+
+        if app_state.lock().unwrap().folders.len() <= 0 {
+            println!("No node_modules left, the 🦀 did its job");
+            return Ok(());
+        }
+
         terminal.draw(|frame| {
             let size = frame.size();
             let mut app_state = app_state.lock().unwrap();

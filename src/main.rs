@@ -3,8 +3,9 @@
 use anyhow::Result;
 use ratatui::{
     backend::CrosstermBackend,
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
     Terminal,
 };
 use std::{
@@ -13,6 +14,9 @@ use std::{
     thread,
     time::Duration,
 };
+
+mod render;
+use render::main::AppRenderer;
 
 mod utils;
 use utils::{
@@ -40,42 +44,25 @@ fn main() -> Result<()> {
         list_state: ListState::default(),
     }));
 
+    terminal.clear()?;
+
     list_state_listen(Arc::clone(&app_state));
 
     loop {
         let app_state = Arc::clone(&app_state);
 
         if app_state.lock().unwrap().folders.len() <= 0 {
+            terminal.clear()?;
             println!("No node_modules left, the 🦀 did its job");
             return Ok(());
         }
 
         terminal.draw(|frame| {
-            let size = frame.size();
-            let mut app_state = app_state.lock().unwrap();
+            let app_state = app_state.lock().unwrap();
+            let mut app_renderer = AppRenderer::new(frame, app_state);
 
-            let items: Vec<_> = app_state
-                .folders
-                .iter()
-                .map(|folder| {
-                    ListItem::new(format!(
-                        "{} -> {}",
-                        folder.path.clone(),
-                        folder
-                            .size
-                            .map(|x| (x as f64 / 1e6).to_string() + " MB")
-                            .unwrap_or("unknown".to_string())
-                    ))
-                })
-                .collect();
-
-            let widget = List::new(items)
-                .block(Block::default().title("npkill-rs").borders(Borders::ALL))
-                .style(Style::default().fg(Color::White))
-                .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
-                .highlight_symbol(">>");
-
-            frame.render_stateful_widget(widget, size, &mut app_state.list_state);
+            app_renderer.render_header();
+            app_renderer.render_body();
         })?;
 
         thread::sleep(Duration::from_millis(12));

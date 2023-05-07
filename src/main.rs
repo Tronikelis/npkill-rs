@@ -61,7 +61,11 @@ fn main() -> Result<()> {
 
     let app_state = Arc::new(Mutex::new(AppState {
         folders: find_target_folders(".", "node_modules"),
-        list_state: ListState::default(),
+        list_state: {
+            let mut list_state = ListState::default();
+            list_state.select(Some(0));
+            list_state
+        },
         status: Status::Kmr,
         errors: None,
     }));
